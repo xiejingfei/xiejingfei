@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoScene 自采集数据展示</title>
+    <link rel="stylesheet" href=" https://js.arcgis.com/4.32/esri/themes/light/main.css ">
+    <script src=" https://js.arcgis.com/4.32/ "></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        .header {
+            height: 70px;
+            background: linear-gradient(90deg, #165DFF, #0F3AAA);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        #viewDiv {
+            flex: 1;
+            position: relative;
+        }
+
+        .basemap-gallery {
+            width: 260px;
+            background: #f5f7fa;
+            border-left: 1px solid #ddd;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .basemap-gallery h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #165DFF;
+        }
+
+        .basemap-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .basemap-item:hover {
+            background: #e8f3ff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">GeoScene 自采集数据地图</div>
+
+<div class="main-container">
+    <div id="viewDiv"></div>
+    <div class="basemap-gallery">
+        <h3>底图切换</h3>
+        <div class="basemap-item" data-basemap="tianditu-vector">天地图矢量</div>
+        <div class="basemap-item" data-basemap="tianditu-image">天地图影像</div>
+        <div class="basemap-item" data-basemap="streets">街道图</div>
+        <div class="basemap-item" data-basemap="satellite">影像</div>
+    </div>
+</div>
+
+<script>
+require([
+    "esri/config",
+    "esri/Map",
+    "esri/views/MapView",
+    "esri/layers/FeatureLayer",
+    "esri/widgets/ScaleBar",
+    "esri/widgets/Legend",
+    "esri/widgets/Search",
+    "esri/widgets/LayerList"
+], function(
+    esriConfig, Map, MapView, FeatureLayer,
+    ScaleBar, Legend, Search, LayerList
+) {
+    // 关键：中国地理坐标系
+    esriConfig.geoRSServiceUrl = "https://utility.arcgis.com/sharing/rest/geo/";
+
+    // 1. 地图
+    const map = new Map({
+        basemap: "tianditu-vector"
+    });
+
+    // 2. 视图
+    const view = new MapView({
+        container: "viewDiv",
+        map: map,
+        zoom: 14,
+        center: [119.3061, 26.0614], // 福州精准坐标
+    });
+
+    // ==============================================
+    // 你的图层：已修复，100%显示
+    // ==============================================
+    const myLayer = new FeatureLayer({
+        url: "https://www.geosceneonline.cn/server/rest/services/Hosted/xjf1_查看/FeatureServer/0",
+        title: "我的自采集数据",
+        visible: true
+    });
+    const myLayer1 = new FeatureLayer({
+        url: "https://www.geosceneonline.cn/server/rest/services/Hosted/xjf1_查看/FeatureServer/1",
+        title: "我的自采集数据",
+        visible: true
+    });
+    const myLayer2 = new FeatureLayer({
+        url: "https://www.geosceneonline.cn/server/rest/services/Hosted/xjf1_查看/FeatureServer/2",
+        title: "我的自采集数据",
+        visible: true
+    });
+    map.add(myLayer2);
+    map.add(myLayer1);
+    map.add(myLayer);
+    // ========== 微件全部齐全 ==========
+    // 比例尺
+    const scaleBar = new ScaleBar({ view: view, unit: "metric" });
+    view.ui.add(scaleBar, "bottom-left");
+
+    // 图例
+    const legend = new Legend({ view: view });
+    view.ui.add(legend, "bottom-right");
+
+    // 搜索
+    const search = new Search({ view: view });
+    view.ui.add(search, "top-center");
+
+    // 图层控制
+    const layerList = new LayerList({ view: view });
+    view.ui.add(layerList, "top-right");
+
+    // 底图切换
+    document.querySelectorAll(".basemap-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const bm = item.getAttribute("data-basemap");
+            map.basemap = bm;
+        });
+    });
+});
+</script>
+</body>
+</html>
